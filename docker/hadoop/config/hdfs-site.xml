@@ -8,12 +8,16 @@
 		<value>file:/home/hadoop/hdfs_data</value>
 	</property>
 	<property>
+	<name>dfs.datanode.du.reserved</name>
+	<value>450971566080</value>
+	</property>
+	<property>
 		<name>dfs.replication</name>
 		<value>2</value>
 	</property>
 	<property>
 		<name>dfs.namenode.secondary.http-address</name>
-		<value>master:9001</value>
+		<value>namenode:9001</value>
 	</property>
 	<property>
 		<name>dfs.webhdfs.enabled</name>
