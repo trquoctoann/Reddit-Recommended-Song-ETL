@@ -8,8 +8,8 @@
 		<value>file:/home/hadoop/hdfs_data</value>
 	</property>
 	<property>
-	<name>dfs.datanode.du.reserved</name>
-	<value>450971566080</value>
+		<name>dfs.datanode.du.reserved</name>
+		<value>450971566080</value>
 	</property>
 	<property>
 		<name>dfs.replication</name>

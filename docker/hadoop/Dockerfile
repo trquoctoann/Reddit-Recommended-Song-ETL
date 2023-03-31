@@ -12,10 +12,10 @@ RUN echo "root:123" | chpasswd
 RUN echo "root   ALL=(ALL)       ALL" >> /etc/sudoers
 
 #HADOOP
-RUN wget https://downloads.apache.org/hadoop/common/hadoop-3.3.4/hadoop-3.3.4.tar.gz
-RUN tar -xzf hadoop-3.3.4.tar.gz
-RUN mv hadoop-3.3.4 /usr/local/hadoop
-RUN rm hadoop-3.3.4.tar.gz
+RUN wget https://archive.apache.org/dist/hadoop/common/hadoop-2.7.7/hadoop-2.7.7.tar.gz
+RUN tar -xzf hadoop-2.7.7.tar.gz
+RUN mv hadoop-2.7.7 /usr/local/hadoop
+RUN rm hadoop-2.7.7.tar.gz
 
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
 ENV PATH $JAVA_HOME/bin:$PATH
