@@ -3,7 +3,6 @@ import os
 import re
 import sys
 import pandas as pd
-import sys
 import html
 import datetime
 from pyspark import SparkContext, SparkConf
