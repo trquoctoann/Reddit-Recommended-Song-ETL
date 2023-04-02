@@ -1,0 +1,14 @@
+[reddit_api_config]
+reddit_auth_url =
+reddit_api_username =
+reddit_api_password =
+reddit_api_app_id =
+reddit_api_app_secret =
+reddit_api_user_agent =
+
+[spotify_api_config]
+spotify_auth_url =
+spotify_api_client_id =
+spotify_api_client_secret =
+
+

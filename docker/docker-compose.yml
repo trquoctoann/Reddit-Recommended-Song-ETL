@@ -71,8 +71,8 @@ services:
     command: bash -c "
         /usr/local/hadoop/bin/hadoop fs -mkdir -p /tmp
         && /usr/local/hadoop/bin/hadoop fs -mkdir -p /warehouse
-        && /usr/local/hadoop/bin/hadoop fs -chmod g+w /tmp
-        && /usr/local/hadoop/bin/hadoop fs -chmod g+w /warehouse
+        && /usr/local/hadoop/bin/hadoop fs -chmod 777 /tmp
+        && /usr/local/hadoop/bin/hadoop fs -chmod 777 /warehouse
         && /usr/local/hive/bin/hive --service hiveserver2
         && tail -f /dev/null"
     ports:
