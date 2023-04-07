@@ -9,3 +9,8 @@ cd ..
 
 cd ./hive
 docker build --tag trquoctoann/hive .
+
+cd ..
+
+cd ./spark
+docker build --tag trquoctoann/spark .

@@ -104,11 +104,69 @@ services:
     hostname: metastore-server
     networks:
       - hadoop_network
+    depends_on:
+      - metastore-database
     command: bash -c "
       /usr/local/hive/bin/hive --service metastore
       && tail -f /dev/null"
+    restart: always
+
+  spark-worker1:
+    image : trquoctoann/spark
+    container_name: spark-worker1
+    hostname: spark-worker1
+    networks:
+      - hadoop_network
+    environment:
+      SPARK_WORKER_CORES: 2
+      SPARK_WORKER_MEMORY: 2g
+    volumes:
+      - ../src/spark:/usr/local/spark/app
     depends_on:
-      - metastore-database
+      - spark-master
+    command: bash -c  "
+         start-slave.sh spark://spark-master:7077
+         && tail -f /dev/null"
+    restart: always
+  
+  spark-worker2:
+    image : trquoctoann/spark
+    container_name: spark-worker2
+    hostname: spark-worker2
+    networks:
+      - hadoop_network
+    environment:
+      SPARK_WORKER_CORES: 2
+      SPARK_WORKER_MEMORY: 2g
+    volumes:
+      - ../src/spark:/usr/local/spark/app
+    depends_on:
+      - spark-master
+    command: bash -c  "
+         start-slave.sh spark://spark-master:7077
+         && tail -f /dev/null"
+    restart: always
+
+  spark-master:
+    image : trquoctoann/spark
+    container_name: spark-master
+    hostname: spark-master
+    networks:
+      - hadoop_network
+    volumes:
+      - ../src/spark:/usr/local/spark/app
+    depends_on:
+      - namenode
+      - datanode1
+      - datanode2
+    command: bash -c  "
+        start-master.sh
+        && start-history-server.sh
+        && /usr/local/hadoop/bin/hadoop fs -mkdir -p /spark-logs
+        && tail -f /dev/null"
+    ports:
+      - "8080:8080"
+      - "7077:7077"
     restart: always
 
 volumes:

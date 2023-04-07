@@ -25,7 +25,7 @@ from utilities.spotify_api_utilities import (
 )
 
 # access history file to get the last execution time
-history_file = os.path.join(os.getcwd(), 'src/spark/data/History.csv')
+history_file = '/usr/local/spark/app/history/History.csv'
 
 if os.path.exists(history_file):
     with open(history_file, mode='r', encoding='utf-8') as f:
@@ -453,15 +453,20 @@ mainDF.drop_duplicates(subset = "post_id", inplace = True)
 
 ##                                                      LOADING
 
-# get date and time to create data file's name
-todays_date = datetime.datetime.today().strftime('%Y%m%d%H')
-export_file_path = os.path.join(os.getcwd(), f'src/spark/data/{todays_date}_reddit.csv')
-
-# create csv output file
-mainDF.to_csv(export_file_path, mode = 'a', sep = ',', encoding = 'utf-8', index = False, header = True)
-
 # add historic data to csv file
 historyDF = pd.DataFrame({'rMusic': [rMusic_execution_time], 'rIndieHeads': [rIndieHeads_execution_time], 
                           'rPopHeads': [rPopHeads_execution_time], 'rElectronicMusic': [rElectronicMusic_execution_time]})
 
 historyDF.to_csv(history_file, mode = 'a', sep = ',', encoding = 'utf-8', index = False, header = False)
+
+# get date and time to create partition in hdfs
+todays_date = datetime.datetime.today().strftime('%Y%m%d%H')
+run_time = todays_date.split('-')
+year = run_time[0]
+month = run_time[1]
+day = run_time[2]
+hour = run_time[3]
+
+spark = SparkSession.builder().appName("Ingestion - from API to HDFS").getOrCreate()
+conf = spark.sparkContext.hadoopConfiguration
+fs = org.apache.hadoop.fs.FileSystem.get(conf)

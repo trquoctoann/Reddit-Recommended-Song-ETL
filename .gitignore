@@ -1,5 +1,5 @@
 __pycache__/
 airflow/logs/
-*.conf
+project.conf
 *.log
 .git
