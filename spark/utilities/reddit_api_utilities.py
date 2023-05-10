@@ -4,12 +4,13 @@ import urllib3
 import datetime
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+configFilePath = r'project.conf'
 
 # create the authentication header to query 
 def get_reddit_bearer_token():
     # get spotify api info
     parser = configparser.ConfigParser()
-    parser.read("project.conf")
+    parser.read(configFilePath)
     auth_url = parser.get("reddit_api_config", "reddit_auth_url")
     username = parser.get("reddit_api_config", "reddit_api_username")
     password = parser.get("reddit_api_config", "reddit_api_password")
@@ -37,7 +38,7 @@ def format_reddit_created_date(date):
 # send request to get new post
 def send_request_reddit_get_new_post(url, access_token = get_reddit_bearer_token()):
     parser = configparser.ConfigParser()
-    parser.read("project.conf")
+    parser.read(configFilePath)
     user_agent = parser.get("reddit_api_config", "reddit_api_user_agent")
     parameters = {'limit' : 100}
     response = requests.get(url, headers = {'Authorization' : access_token, 'user-agent': user_agent}, params = parameters)

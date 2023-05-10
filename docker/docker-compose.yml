@@ -121,7 +121,8 @@ services:
       SPARK_WORKER_CORES: 2
       SPARK_WORKER_MEMORY: 2g
     volumes:
-      - ../src/spark:/usr/local/spark/app
+      - ../flask:/usr/local/spark/web_app
+      - ../spark:/usr/local/spark/app
     depends_on:
       - spark-master
     command: bash -c  "
@@ -139,7 +140,8 @@ services:
       SPARK_WORKER_CORES: 2
       SPARK_WORKER_MEMORY: 2g
     volumes:
-      - ../src/spark:/usr/local/spark/app
+      - ../flask:/usr/local/spark/web_app
+      - ../spark:/usr/local/spark/app
     depends_on:
       - spark-master
     command: bash -c  "
@@ -154,7 +156,8 @@ services:
     networks:
       - hadoop_network
     volumes:
-      - ../src/spark:/usr/local/spark/app
+      - ../flask:/usr/local/spark/web_app
+      - ../spark:/usr/local/spark/app
     depends_on:
       - namenode
       - datanode1
@@ -165,15 +168,49 @@ services:
         && /usr/local/hadoop/bin/hadoop fs -mkdir -p /spark-logs
         && tail -f /dev/null"
     ports:
-      - "8080:8080"
-      - "7077:7077"
+      - 8080:8080
+      - 7077:7077
+      - 18080:18080
+      - 5000:5000
     restart: always
+
+  history-database: 
+    image : mysql
+    container_name: history-database
+    hostname: history-database
+    networks:
+      - hadoop_network
+    environment:
+      MYSQL_ROOT_HOST: '%'
+      MYSQL_ROOT_PASSWORD: '123'
+    volumes:
+      - history_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    ports:
+      - 3307:3306
+    restart: always
+
+  superset:
+    image : apache/superset
+    container_name: superset
+    hostname: superset
+    networks:
+      - hadoop_network
+    environment:
+      - SUPERSET_ADMIN_USERNAME=root
+      - SUPERSET_ADMIN_PASSWORD=123
+    volumes:
+      - superset-data:/app/superset_home
+    ports:
+      - 8089:8088
 
 volumes:
   namenode_metadata:
   datanode1_data:
   datanode2_data:
   metastore_data:
+  history_data:
+  superset-data:
 
 networks:
   hadoop_network:

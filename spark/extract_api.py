@@ -5,9 +5,7 @@ import sys
 import pandas as pd
 import html
 import datetime
-from pyspark import SparkContext, SparkConf
-from pyspark.sql import SparkSession, functions
-from pyspark.sql.types import StringType
+import logging
 
 #import functions from utilities folder
 from utilities.reddit_api_utilities import (
@@ -20,31 +18,31 @@ from utilities.spotify_api_utilities import (
     url_spotify_search_item,
     url_spotify_get_tracks_audio_features,
     url_spotify_get_several_artists,
-    is_similar,
     send_spotify_get_request
 )
 
-# access history file to get the last execution time
-history_file = '/usr/local/spark/app/history/History.csv'
+from utilities.historyDB_utilities import (
+    get_last_execution_date,
+    save_new_execution_date
+)
 
-if os.path.exists(history_file):
-    with open(history_file, mode='r', encoding='utf-8') as f:
-        history = f.readlines()[-1].split(',')
-        rMusic_last_time = history[0]
-        rIndieHeads_last_time = history[1]
-        rPopHeads_last_time = history[2]
-        rElectronicMusic_last_time = history[3][:-2]
+from utilities.utils import (
+    is_similar
+)
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# get last execution time
+last_time = get_last_execution_date()
 
 # convert data type to datetime
-rMusic_last_time = datetime.datetime.strptime(rMusic_last_time, '%Y-%m-%d %H:%M:%S')
-rIndieHeads_last_time = datetime.datetime.strptime(rIndieHeads_last_time, '%Y-%m-%d %H:%M:%S')
-rPopHeads_last_time = datetime.datetime.strptime(rPopHeads_last_time, '%Y-%m-%d %H:%M:%S')
-rElectronicMusic_last_time = datetime.datetime.strptime(rElectronicMusic_last_time, '%Y-%m-%d %H:%M:%S')
+rMusic_last_time = last_time[0]
+rIndieHeads_last_time = last_time[1]
+rPopHeads_last_time = last_time[2]
+rElectronicMusic_last_time = last_time[3]
 
 ##                                           REDDIT API - EXTRACTION & TRANSFORMATION 
-
-# create historic df
-historyDF = pd.DataFrame(columns = ['rMusic', 'rIndieHeads', 'rPopHeads', 'rElectronicMusic'])
 
 # create dataframe to store subreddit post
 redditDF = pd.DataFrame(columns = ['post_id', 'post_title', 'post_created_utc', 'post_url', 'searching_context'])
@@ -58,6 +56,7 @@ reddit_rMusic_response, reddit_rMusic_status_code = send_request_reddit_get_new_
 if reddit_rMusic_status_code != 200 : 
     sys.exit()
 
+logger.info("Extracting rMusic data...")
 success = False
 rMusic_execution_time = ''
 for post in reddit_rMusic_response['data']['children'] :
@@ -66,7 +65,7 @@ for post in reddit_rMusic_response['data']['children'] :
         success = True
         # eliminate 'i made this' tag cause most of this kind of song can't find on spotify
         if post['data']['link_flair_text'] != 'i made this' :
-          # recommendation posts usually have youtube, spotify, soundcloud, bandcamp link attached
+        # recommendation posts usually have youtube, spotify, soundcloud, bandcamp link attached
             if 'youtu' in post['data']['url'] or 'spotify' in post['data']['url'] \
             or 'soundcloud' in post['data']['url'] or 'bandcamp' in post['data']['url'] :
                 # get raw post title
@@ -111,7 +110,7 @@ for post in reddit_rMusic_response['data']['children'] :
                         rMusic_execution_time = post_created_utc
     else : 
         break
-
+logger.info("Success")
 # add new execution time to historic dataframe
 if rMusic_execution_time == '' :
     rMusic_execution_time = rMusic_last_time
@@ -124,6 +123,7 @@ reddit_rIndieHeads_response, reddit_rIndieHeads_status_code = send_request_reddi
 if reddit_rIndieHeads_status_code != 200 : 
     sys.exit()
 
+logger.info("Extracting rIndieHeads data...")
 count = 1
 success = False
 rIndieHeads_execution_time = ''
@@ -197,6 +197,8 @@ for post in reddit_rIndieHeads_response['data']['children'] :
 if rIndieHeads_execution_time == '' :
     rIndieHeads_execution_time = rIndieHeads_last_time
 
+logger.info("Success")
+
 ##                                                  EXTRACT FROM r/PopHeads
 
 # get reddit api data in json format
@@ -205,6 +207,7 @@ reddit_rPopHeads_response, reddit_rPopHeads_status_code = send_request_reddit_ge
 if reddit_rPopHeads_status_code != 200 : 
     sys.exit()
 
+logger.info("Extracting rPopHeads data...")
 success = False
 rPopHeads_execution_time = ''
 for post in reddit_rPopHeads_response['data']['children'] :
@@ -265,6 +268,8 @@ for post in reddit_rPopHeads_response['data']['children'] :
 if rPopHeads_execution_time == '' :
     rPopHeads_execution_time = rPopHeads_last_time
 
+logger.info("Success")
+
 ##                                                  EXTRACT FROM r/ElectronicMusic
 
 # get reddit api data in json format
@@ -273,6 +278,7 @@ reddit_rElectronicMusic_response, reddit_rElectronicMusic_status_code = send_req
 if reddit_rElectronicMusic_status_code != 200 : 
     sys.exit()
 
+logger.info("Extracting rElectronicMusic data...")
 success = False
 rElectronicMusic_execution_time = ''
 for post in reddit_rElectronicMusic_response['data']['children'] :
@@ -333,7 +339,9 @@ for post in reddit_rElectronicMusic_response['data']['children'] :
 if rElectronicMusic_execution_time == '' :
     rElectronicMusic_execution_time = rElectronicMusic_last_time
 
-##                                            SPOTIFY API - EXTRACTION & TRANSFORMATION 
+logger.info("Success")
+
+##                                                  SPOTIFY API - EXTRACTION
 
 # create header
 header = get_spotify_bearer_token()
@@ -345,6 +353,8 @@ mainDF = pd.DataFrame(columns = ['post_id', 'post_created_utc', 'post_title', 'p
 # contain track's feature, will merge with mainDF later
 featuresDF = pd.DataFrame(columns = ['track_id', 'danceability', 'energy', 'key', 'mode', 'loudness', 'speechiness', 'acousticness', 
                                      'instrumentalness', 'liveness', 'valence', 'tempo', 'duration_ms', 'time_signature'])
+
+logger.info("Extracting Spotify data...")
 
 for i, post in enumerate(redditDF.itertuples(index = False)) : 
     # get data from reddit dataframe
@@ -444,6 +454,9 @@ for i, post in enumerate(redditDF.itertuples(index = False)) :
 
                     # add new row to df
                     featuresDF = pd.concat([featuresDF, featuresDF_aux], ignore_index = True, axis = 0)
+
+logger.info("Success")
+
 # merge 2 above df 
 # mainDF = mainDF.merge(featuresDF, on = 'track_id', how = 'inner')
 mainDF = mainDF.join(featuresDF.set_index('track_id'), on = 'track_id')
@@ -453,20 +466,9 @@ mainDF.drop_duplicates(subset = "post_id", inplace = True)
 
 ##                                                      LOADING
 
-# add historic data to csv file
-historyDF = pd.DataFrame({'rMusic': [rMusic_execution_time], 'rIndieHeads': [rIndieHeads_execution_time], 
-                          'rPopHeads': [rPopHeads_execution_time], 'rElectronicMusic': [rElectronicMusic_execution_time]})
+# add new execution date to history-database
+save_new_execution_date(rMusic_execution_time, rIndieHeads_execution_time, rPopHeads_execution_time, rElectronicMusic_execution_time)
 
-historyDF.to_csv(history_file, mode = 'a', sep = ',', encoding = 'utf-8', index = False, header = False)
-
-# get date and time to create partition in hdfs
+# get date and time to create csv file
 todays_date = datetime.datetime.today().strftime('%Y%m%d%H')
-run_time = todays_date.split('-')
-year = run_time[0]
-month = run_time[1]
-day = run_time[2]
-hour = run_time[3]
-
-spark = SparkSession.builder().appName("Ingestion - from API to HDFS").getOrCreate()
-conf = spark.sparkContext.hadoopConfiguration
-fs = org.apache.hadoop.fs.FileSystem.get(conf)
+mainDF.to_csv(todays_date + '.csv', mode = 'a', sep = ',', encoding = 'utf-8', index = False, header = True)

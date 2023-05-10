@@ -1,15 +1,15 @@
 import requests
 import configparser
 import urllib3
-from difflib import SequenceMatcher
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+configFilePath = r'project.conf'
 
 # create the authentication header to query spotify
 def get_spotify_bearer_token():
     # get spotify api info
     parser = configparser.ConfigParser()
-    parser.read("project.conf")
+    parser.read(configFilePath)
     auth_url = parser.get("spotify_api_config", "spotify_auth_url")
     client_id = parser.get("spotify_api_config", "spotify_api_client_id")
     client_secret = parser.get("spotify_api_config", "spotify_api_client_secret")
@@ -41,12 +41,6 @@ def url_spotify_get_several_artists(ids):
     endpoint_url = "https://api.spotify.com/v1/artists"
     query_parameters = {'ids': ids}            
     return (endpoint_url, query_parameters)
-
-# function to validate veracity of searched song
-def is_similar(str1, str2):
-    matcher = SequenceMatcher(None, str1, str2)
-    similarity = matcher.ratio()
-    return similarity 
 
 # initial connection
 def send_spotify_get_request(url, headers, params):

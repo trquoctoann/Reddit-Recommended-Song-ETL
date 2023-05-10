@@ -40,6 +40,7 @@ ADD config/*.xml $HADOOP_CONF_DIR
 ADD config/workers $HADOOP_CONF_DIR
 RUN chmod +x $HADOOP_HOME/sbin/*
 
+RUN apt install -y net-tools
 ARG FORMAT_NAMENODE_COMMAND
 RUN $FORMAT_NAMENODE_COMMAND
 
