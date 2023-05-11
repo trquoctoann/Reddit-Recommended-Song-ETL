@@ -52,6 +52,7 @@ day = runTime[2]
 outputDF = spark_df.withColumn("year", functions.lit(year)).withColumn("month", functions.lit(month)) \
                  .withColumn("day", functions.lit(day))
 outputDF.write.partitionBy("year", "month", "day").mode("append").parquet(tblLocation)
+spark.stop()
 
 if os.path.exists(os.path.join(path, filename + '.csv')):
     os.remove(os.path.join(path, filename + '.csv'))

@@ -25,6 +25,12 @@ def get_genres(text):
     sorted_genres = dict(sorted(genres.items(), key=lambda item: item[1], reverse = True))
     return next(iter(sorted_genres))
 
+runTime = datetime.datetime.today().strftime('%Y-%m-%d')
+runTime = runTime.split('-')
+year = runTime[0]
+month = runTime[1]
+day = runTime[2]
+
 # create SparkSession
 spark = SparkSession.builder.appName("Daily Genre Report") \
     .config("hive.metastore.uris", "thrift://metastore-server:9083") \
@@ -33,15 +39,10 @@ spark = SparkSession.builder.appName("Daily Genre Report") \
     .enableHiveSupport() \
     .getOrCreate()
 
-runTime = '2023-05-07'
-# runTime = datetime.datetime.today().strftime('%Y-%m-%d')
-runTime = runTime.split('-')
-year = runTime[0]
-month = runTime[1]
-day = runTime[2]
-
 # load data to Spark DataFrames
-spotifyDF = spark.read.parquet("/datalake/SpotifyData").drop("year", "month", "day")
+spotifyDF = spark.read.parquet("/datalake/SpotifyData")
+spotifyDF = spotifyDF.filter(spotifyDF['year'] == year).filter(spotifyDF['month'] == month) \
+                     .filter(spotifyDF['day'] == day).drop("year", "month", "day")
 
 get_genres_udf = functions.udf(get_genres, StringType())
 spotifyDF = spotifyDF.withColumn("major_genre", get_genres_udf(spotifyDF["genres"]))
