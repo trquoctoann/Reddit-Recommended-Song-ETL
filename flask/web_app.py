@@ -94,6 +94,7 @@ def main():
         recommendations = []
         for result in results: 
             recommendation = []
+            artist_name = result[1]
             track_id = result[2]
             track_name = result[3]
             release_date = result[4]
@@ -102,13 +103,16 @@ def main():
             genre = result[13]
             response = requests.get("https://api.spotify.com/v1/tracks/", headers = header, params = {'ids': track_id})
             link_cover_image = response.json()['tracks'][0]['album']['images'][0]['url']
-            
+            song_url = 'https://open.spotify.com/track/' + track_id
+
             recommendation.append(track_name)
+            recommendation.append(artist_name)
             recommendation.append(release_date)
             recommendation.append(genre)
             recommendation.append(duration)
             recommendation.append(track_popularity)
             recommendation.append(link_cover_image)
+            recommendation.append(song_url)
             recommendations.append(recommendation)
         return flask.render_template('result.html', recommendations = recommendations)
 
