@@ -111,44 +111,6 @@ services:
       && tail -f /dev/null"
     restart: always
 
-  spark-worker1:
-    image : trquoctoann/spark
-    container_name: spark-worker1
-    hostname: spark-worker1
-    networks:
-      - hadoop_network
-    environment:
-      SPARK_WORKER_CORES: 2
-      SPARK_WORKER_MEMORY: 2g
-    volumes:
-      - ../flask:/usr/local/spark/web_app
-      - ../spark:/usr/local/spark/app
-    depends_on:
-      - spark-master
-    command: bash -c  "
-         start-slave.sh spark://spark-master:7077
-         && tail -f /dev/null"
-    restart: always
-  
-  spark-worker2:
-    image : trquoctoann/spark
-    container_name: spark-worker2
-    hostname: spark-worker2
-    networks:
-      - hadoop_network
-    environment:
-      SPARK_WORKER_CORES: 2
-      SPARK_WORKER_MEMORY: 2g
-    volumes:
-      - ../flask:/usr/local/spark/web_app
-      - ../spark:/usr/local/spark/app
-    depends_on:
-      - spark-master
-    command: bash -c  "
-         start-slave.sh spark://spark-master:7077
-         && tail -f /dev/null"
-    restart: always
-
   spark-master:
     image : trquoctoann/spark
     container_name: spark-master
@@ -190,27 +152,12 @@ services:
       - 3307:3306
     restart: always
 
-  superset:
-    image : apache/superset
-    container_name: superset
-    hostname: superset
-    networks:
-      - hadoop_network
-    environment:
-      - SUPERSET_ADMIN_USERNAME=root
-      - SUPERSET_ADMIN_PASSWORD=123
-    volumes:
-      - superset-data:/app/superset_home
-    ports:
-      - 8089:8088
-
 volumes:
   namenode_metadata:
   datanode1_data:
   datanode2_data:
   metastore_data:
   history_data:
-  superset-data:
 
 networks:
   hadoop_network:
