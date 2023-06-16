@@ -1,6 +1,6 @@
 import logging
 from pyspark.sql import functions
-from pyspark.sql.functions import col, desc
+from pyspark.sql.functions import col, desc, rand
 from pyspark.sql.types import *
 from pyspark.ml.feature import VectorAssembler
 from pyspark.ml.feature import StandardScaler
@@ -86,5 +86,5 @@ class RecommendationEngine:
         predicted_cluster = self.model.transform(standardize_input_data).select('prediction').collect()[0][0]
         
         similar_cluster_songs = self.final_df.filter(col('prediction') == predicted_cluster).orderBy(desc('track_popularity'))
-        recommendation = similar_cluster_songs.limit(5).collect()
+        recommendation = similar_cluster_songs.limit(10).orderBy(rand()).limit(5).orderBy(desc('track_popularity')).collect()
         return recommendation
