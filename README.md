@@ -1,4 +1,4 @@
-# ETL and recommendation system of combined Reddit and Spotify data in a scalable architecture
+# ETL and recommendation system of combined Reddit and Spotify data
 This project uses the social network Reddit to obtain information about the latest music recommended by users and then query the track and artist data involved that Spotify. The entire process is managed using widely recognized tools within the field of Big Data.
 ## Description
 This project implements a ETL process to collect data from Reddit. The steps of the process are:
@@ -22,3 +22,11 @@ The project has been built using Docker and Docker Compose to run the following 
 - Python 3.10.6
 - Reddit and Spotify APIs developer keys added in a file project.conf following the format of the project.conf.example file and located in the same folder.
 ## Usage 
+```sh
+$ git clone https://github.com/trquoctoann/Subreddit-ETL-Recommendation-System.git
+$ cd Subreddit-ETL-Recommendation-System
+$ sudo ./build-image.sh
+$ sudo docker-compose up --build -d
+```
+Once the project is deployed, three visual interfaces can be accessed:
+1. 
