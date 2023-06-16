@@ -14,3 +14,12 @@ cd ..
 
 cd ./spark
 docker build --tag trquoctoann/spark .
+
+cd ..
+
+cd ./superset
+docker build --tag trquoctoann/superset .
+
+cd ..
+
+docker-compose build .
